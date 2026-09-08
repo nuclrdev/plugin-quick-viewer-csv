@@ -25,6 +25,7 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.HeadlessException;
 import java.awt.KeyboardFocusManager;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
@@ -64,6 +65,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import dev.nuclr.platform.NuclrSettings;
 import dev.nuclr.platform.NuclrThemeScheme;
@@ -184,6 +186,9 @@ final class CsvQuickViewPanel extends JPanel {
 
 	private boolean exportIncludesHeader = true;
 	private boolean syncingSelection;
+
+	/** Where the grid was scrolled to before a reload, to be restored once the page is back. */
+	private Point pendingViewPosition;
 
 	private Palette palette = ViewerUi.palette(null);
 	private NuclrThemeScheme theme;
@@ -623,31 +628,69 @@ final class CsvQuickViewPanel extends JPanel {
 
 	// ── Showing a file ───────────────────────────────────────────────────────
 
+	/**
+	 * Shows a freshly parsed file.
+	 *
+	 * <p>Re-opening the file already on screen keeps everything the user set up -
+	 * the filter, the sort, the page, the ticked rows, the column widths and the
+	 * scroll position. The host re-opens the preview whenever the panel's listing
+	 * refreshes, which happens for reasons that have nothing to do with the user
+	 * (a file appearing in the folder, an export written into it), and losing a
+	 * selection built up across pages to one of those would be its own bug.
+	 */
 	private void install(NuclrResource item, String name, CsvData loaded) {
 
 		cancelBackgroundWork();
+
+		boolean sameFile = isSameFile(item);
+		int previousColumns = data != null ? data.columnCount() : -1;
+		int[] widths = sameFile ? columnWidths() : null;
+		Point position = sameFile ? scroll.getViewport().getViewPosition() : null;
 
 		this.resource = item;
 		this.fileName = name == null ? "" : name;
 		this.data = loaded;
 
-		// A new file keeps how the user likes to search (regex, case) but not what
-		// they were searching for: the queries belonged to the previous file.
-		filter = filter.withQuery("").withoutColumnQueries();
-		filterBar.reset();
-		filterBar.setInvalid(null);
-		findBar.close();
-		clearSearch();
+		if (sameFile) {
+			// The file may have been rewritten under us and be shorter now.
+			selectedRows.removeIf(row -> row >= loaded.rowCount());
 
-		sortColumn = NO_SORT;
-		sortDescending = false;
-		page = 0;
-		selectedRows.clear();
-		headerRenderer.setSort(NO_SORT, false);
+			// Re-reading with another separator gives the file different columns, and
+			// a filter still aimed at "column 4" would then hide every row.
+			if (loaded.columnCount() != previousColumns) {
+				filter = filter.withoutColumnQueries();
+				columnFilterRow.clear();
+			}
+		} else {
+			// A new file keeps how the user likes to search (regex, case) but not what
+			// they were searching for: the queries belonged to the previous file.
+			filter = filter.withQuery("").withoutColumnQueries();
+			filterBar.reset();
+			filterBar.setInvalid(null);
+			findBar.close();
+			clearSearch();
+
+			sortColumn = NO_SORT;
+			sortDescending = false;
+			page = 0;
+			selectedRows.clear();
+			headerRenderer.setSort(NO_SORT, false);
+		}
 
 		model.setData(loaded);
-		configureColumns();
-		columnFilterRow.rebuild();
+
+		// setData rebuilds the table's columns, so the widths go with them either
+		// way: measured afresh for a new file, put back as the user left them for
+		// the same one.
+		if (widths != null && widths.length == table.getColumnCount()) {
+			applyColumnWidths(widths);
+		} else {
+			configureColumns();
+		}
+
+		if (!sameFile || columnFilterRow.fieldCount() != table.getColumnCount()) {
+			columnFilterRow.rebuild();
+		}
 		columnFilterRow.applyTheme(palette);
 
 		if (loaded.isEmpty()) {
@@ -658,7 +701,47 @@ final class CsvQuickViewPanel extends JPanel {
 		}
 
 		cards.show(deck, CARD_TABLE);
-		applyView(CsvIndex.all(loaded), false);
+		pendingViewPosition = position;
+
+		if (sameFile) {
+			// Re-run the filter and sort the user had applied, on the new content.
+			recomputeView(true);
+		} else {
+			applyView(CsvIndex.all(loaded), false);
+		}
+	}
+
+	/** Whether {@code item} is the file already on screen, by path rather than by identity. */
+	private boolean isSameFile(NuclrResource item) {
+
+		if (resource == null || item == null || data == null) {
+			return false;
+		}
+
+		String current = resource.getFullPath();
+		return current != null && current.equals(item.getFullPath());
+	}
+
+	private int[] columnWidths() {
+
+		TableColumnModel columns = table.getColumnModel();
+		int[] widths = new int[columns.getColumnCount()];
+
+		for (int i = 0; i < widths.length; i++) {
+			widths[i] = columns.getColumn(i).getWidth();
+		}
+
+		return widths;
+	}
+
+	private void applyColumnWidths(int[] widths) {
+
+		TableColumnModel columns = table.getColumnModel();
+
+		for (int i = 0; i < widths.length && i < columns.getColumnCount(); i++) {
+			columns.getColumn(i).setPreferredWidth(widths[i]);
+			columns.getColumn(i).setWidth(widths[i]);
+		}
 	}
 
 	/** Column widths from the content, so the first look at a file is already readable. */
@@ -789,6 +872,13 @@ final class CsvQuickViewPanel extends JPanel {
 
 		paginationBar.update(page, pageCount);
 		updateStatus();
+
+		if (pendingViewPosition != null) {
+			Point position = pendingViewPosition;
+			pendingViewPosition = null;
+			// After the rows are laid out, or the viewport clamps it to nothing.
+			SwingUtilities.invokeLater(() -> scroll.getViewport().setViewPosition(position));
+		}
 	}
 
 	private void goToPage(int requested) {
@@ -1314,8 +1404,17 @@ final class CsvQuickViewPanel extends JPanel {
 		Thread.ofVirtual().name("csv-quickview-export").start(() -> {
 			try {
 				CsvExporter.writeFile(file, current, rows, includeHeader, delimiter);
-				SwingUtilities.invokeLater(() -> paginationBar.setStatus(
-						"Exported " + ViewerUi.count(rows.length) + " rows to " + file.getFileName()));
+
+				// The viewer is left exactly as it was - same ticked rows, same page,
+				// same scroll position, same status line. The export's result is a file,
+				// so the file is what the user is shown: their own file manager, opened
+				// with it selected, where they can move, attach or open it.
+				if (!FileReveal.reveal(file)) {
+					// No file manager to open: say something, or a successful export
+					// would look like nothing happened at all.
+					SwingUtilities.invokeLater(() -> paginationBar.setStatus(
+							"Exported " + ViewerUi.count(rows.length) + " rows to " + file));
+				}
 			} catch (Exception e) {
 				log.warn("Failed to export to [{}]: {}", file, e.getMessage());
 				SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this,

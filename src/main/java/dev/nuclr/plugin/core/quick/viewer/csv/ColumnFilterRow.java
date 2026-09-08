@@ -130,6 +130,11 @@ final class ColumnFilterRow extends JPanel {
 		repaint();
 	}
 
+	/** How many columns the row currently has fields for, gutter included. */
+	int fieldCount() {
+		return fields.size();
+	}
+
 	/** Clears every field without reporting the change - used when the filter is reset elsewhere. */
 	void clear() {
 

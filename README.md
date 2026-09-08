@@ -12,6 +12,7 @@ Hit **Ctrl+Q** on a `.csv` and get a real grid in the opposite pane — sortable
 - 🔎 **Filtering** — one query across every column, plus a filter field under each column heading, as plain text or a regular expression, case-sensitive or not
 - 🔦 **Ctrl+F search** that highlights every matching cell, counts them, and jumps to the right page
 - 📤 **Export** the rows you selected — across pages — to a CSV file or the clipboard
+- 📁 **The exported file is revealed in your file manager** (Explorer, Finder, or the freedesktop `ShowItems` call), selected and ready to use; the viewer itself is left untouched — same rows ticked, same page, same scroll position
 - 🧭 **Separator sniffing** for comma, semicolon, tab and pipe, overridable from the right-click menu
 - 🛡️ **Bounded loading**: at most 200,000 rows / 24M characters, so a runaway file cannot freeze the pane
 - ⛔ Cancellation-aware, so moving the cursor down a folder never leaves stale content behind
@@ -69,6 +70,7 @@ The file is parsed once and never copied again. Filtering and sorting produce an
 
 - the `#` gutter still shows the row's place in the **file** after sorting and filtering,
 - rows selected on one page survive paging, sorting and re-filtering, and export in display order,
+- re-opening the same file (which the host does whenever the folder listing refreshes — an export written into that folder, for instance) keeps the filter, the sort, the page, the ticked rows, the column widths and the scroll position,
 - a 200,000-row file re-filters on each keystroke without the pane stalling.
 
 ### Threading

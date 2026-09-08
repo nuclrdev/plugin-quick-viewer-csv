@@ -130,6 +130,61 @@ class CsvQuickViewPanelTest {
 	}
 
 	@Test
+	void keepsTheSelectionWhenTheSameFileIsReopened() throws Exception {
+
+		CsvQuickViewPanel panel = panel();
+		panel.load(new StringResource("people.csv", TABLE), new AtomicBoolean());
+		flush();
+
+		JTable table = panel.tableComponent();
+		onEdt(() -> {
+			table.setRowSelectionInterval(0, 0);
+			table.addRowSelectionInterval(2, 2);
+		});
+
+		// What the host does after the folder listing refreshes - which an export
+		// written into that folder causes. Nothing the user did may be lost to it.
+		panel.load(new StringResource("people.csv", TABLE), new AtomicBoolean());
+		flush();
+
+		assertTrue(table.isRowSelected(0));
+		assertFalse(table.isRowSelected(1));
+		assertTrue(table.isRowSelected(2));
+	}
+
+	@Test
+	void forgetsTheSelectionWhenADifferentFileIsOpened() throws Exception {
+
+		CsvQuickViewPanel panel = panel();
+		panel.load(new StringResource("people.csv", TABLE), new AtomicBoolean());
+		flush();
+
+		JTable table = panel.tableComponent();
+		onEdt(() -> table.setRowSelectionInterval(0, 0));
+
+		panel.load(new StringResource("other.csv", TABLE), new AtomicBoolean());
+		flush();
+
+		assertFalse(table.isRowSelected(0));
+	}
+
+	@Test
+	void keepsTheColumnWidthsTheUserDraggedWhenTheSameFileIsReopened() throws Exception {
+
+		CsvQuickViewPanel panel = panel();
+		panel.load(new StringResource("people.csv", TABLE), new AtomicBoolean());
+		flush();
+
+		JTable table = panel.tableComponent();
+		onEdt(() -> table.getColumnModel().getColumn(1).setWidth(275));
+
+		panel.load(new StringResource("people.csv", TABLE), new AtomicBoolean());
+		flush();
+
+		assertEquals(275, table.getColumnModel().getColumn(1).getWidth());
+	}
+
+	@Test
 	void takesTheColumnHeaderBackWhenTheTableClaimsIt() throws Exception {
 
 		CsvQuickViewPanel panel = panel();
