@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "version": "${project.version}",
+  "platformSdkVersion": "${platform.sdk.version}",
+	"plugins": [
+		{
+			"class": "dev.nuclr.plugin.core.quick.viewer.csv.CsvQuickViewProvider",
+			"type": "QuickView",
+			"id": "dev.nuclr.plugin.core.quickviewer.csv",
+			"name": "CSV Quick Viewer",
+			"version": "${project.version}",
+			"description": "Tabular quick viewer for CSV/TSV files: paged grid, column sorting, text/regex filtering, Ctrl+F search and export of selected rows to a file or the clipboard.",
+			"author": "Nuclr Development Team",
+			"license": "Apache-2.0",
+			"website": "https://nuclr.dev",
+			"pageUrl": "https://github.com/nuclrdev/plugin-quick-viewer-csv",
+			"docUrl": "https://github.com/nuclrdev/plugin-quick-viewer-csv",
+			"developer": "Official",
+			"singleton": true,
+			"priority": 0
+		}
+	]
+}
