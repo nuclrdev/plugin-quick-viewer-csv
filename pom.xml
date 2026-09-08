@@ -14,6 +14,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- The oldest SDK this plugin actually compiles against, which is what the
+		     host's compatibility gate compares against: a plugin that demands a newer
+		     SDK than the running Commander provides is skipped entirely. Nothing here
+		     uses the 5.0 additions (the credential store), so 4.0.0 keeps it loadable
+		     on shipped builds as well as on a development tree. -->
 		<platform.sdk.version>5.0.0</platform.sdk.version>
 		<maven.compiler.source>25</maven.compiler.source>
 		<maven.compiler.target>25</maven.compiler.target>

@@ -39,14 +39,16 @@ UTF-8 (with or without a BOM) and UTF-16 with a BOM are decoded; anything undeco
 
 ## 📥 Installation
 
-Copy the signed plugin archive and detached signature into the Nuclr Commander `plugins/` directory:
+Copy the signed plugin archive and detached signature into a directory Commander scans:
 
 ```text
 quick-view-csv-<version>.zip
 quick-view-csv-<version>.zip.sig
 ```
 
-Nuclr Commander verifies the RSA-SHA256 signature against `nuclr-cert.pem` on load. The plugin becomes available immediately without a restart.
+Commander scans two directories at startup — the per-user one (`%USERPROFILE%\.nuclr\commander\plugins`, or `~/.nuclr/commander/plugins`) and the `plugins/` folder of the installation itself. The per-user directory is the one to prefer: it needs no elevated write, and an installed build and a development tree both read it.
+
+The archive's RSA-SHA256 signature is verified against `nuclr-cert.pem` on load. Both directories are read **once, at startup**, so a newly copied plugin appears on the next launch, not in the running window.
 
 ## 🧠 How It Works
 
@@ -80,6 +82,8 @@ mvn clean verify
 ```
 
 Produces `target/quick-view-csv-<version>.zip` and its detached `.zip.sig`. Signing reads `jarsigner.storepass` from the Maven settings or `-D` properties; no credentials live in this repository.
+
+The bundle declares platform SDK **4.0.0** — the oldest SDK it compiles against, not the newest available. Commander skips any plugin whose required SDK is newer than its own, so declaring 5.0.0 would make it invisible to shipped builds (1.0.46 provides 4.0.0) while still working in a development tree. Raise it only when this plugin starts using something newer.
 
 ## 📄 License
 
