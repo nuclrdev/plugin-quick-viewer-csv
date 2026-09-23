@@ -17,6 +17,7 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JComponent;
@@ -102,6 +103,27 @@ public class CsvQuickViewProvider implements QuickViewNuclrPlugin {
 		panel();
 
 		return panel.load(resource, cancelled);
+	}
+
+	@Override
+	public boolean supportsThumbnails() {
+		return true;
+	}
+
+	/** The top rows as a small spreadsheet; see {@link CsvThumbnail}. */
+	@Override
+	public BufferedImage thumbnail(NuclrResource resource, int maxWidth, int maxHeight, AtomicBoolean cancelled) {
+
+		if (maxWidth <= 0 || maxHeight <= 0 || !supports(resource)) {
+			return null;
+		}
+
+		try {
+			return CsvThumbnail.render(resource, maxWidth, maxHeight, cancelled);
+		} catch (Exception e) {
+			log.debug("No thumbnail for {}: {}", resource.getName(), e.toString());
+			return null;
+		}
 	}
 
 	@Override

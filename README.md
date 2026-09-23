@@ -38,6 +38,12 @@ UTF-8 (with or without a BOM) and UTF-16 with a BOM are decoded; anything undeco
 | `Alt+←` / `Alt+→` | Previous / next page |
 | `Alt+Home` / `Alt+End` | First / last page |
 
+## 🖼️ Thumbnail
+
+The top rows as a small spreadsheet: the separator sniffed as for the grid, the header row shaded when the file has one, numbers right-aligned and columns sized to their content. Only the first 32 KB is read.
+
+It implements the platform SDK 6.0.0 thumbnail methods, so plugins that want a picture of a file - attachment chips in AI Projects, for one - get it through Commander.
+
 ## 📥 Installation
 
 Copy the signed plugin archive and detached signature into a directory Commander scans:
@@ -85,7 +91,7 @@ mvn clean verify
 
 Produces `target/quick-view-csv-<version>.zip` and its detached `.zip.sig`. Signing reads `jarsigner.storepass` from the Maven settings or `-D` properties; no credentials live in this repository.
 
-The bundle declares platform SDK **4.0.0** — the oldest SDK it compiles against, not the newest available. Commander skips any plugin whose required SDK is newer than its own, so declaring 5.0.0 would make it invisible to shipped builds (1.0.46 provides 4.0.0) while still working in a development tree. Raise it only when this plugin starts using something newer.
+The bundle declares platform SDK **6.0.0**, the first with the thumbnail methods it implements. Commander skips any plugin whose required SDK is newer than its own, so this build needs a Commander built on SDK 6.0.0 or later.
 
 ## 📄 License
 

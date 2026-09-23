@@ -222,6 +222,30 @@ final class CsvLoader {
 		return numeric;
 	}
 
+	/**
+	 * Decodes the first {@code maxBytes} of {@code resource} as {@link #load}
+	 * would, cut back to the last whole line, for a caller that wants only the
+	 * top rows.
+	 *
+	 * @throws NotTabularException if the head holds binary content
+	 */
+	static String head(NuclrResource resource, int maxBytes) throws Exception {
+
+		byte[] head;
+		try (InputStream in = resource.openInputStream()) {
+			head = in.readNBytes(maxBytes);
+		}
+
+		int bom = bomLength(head);
+		if (bom == 0 && containsNullByte(head)) {
+			throw new NotTabularException("binary content");
+		}
+
+		String text = decode(head, bom, charsetOf(head));
+		int lastBreak = text.lastIndexOf('\n');
+		return head.length == maxBytes && lastBreak > 0 ? text.substring(0, lastBreak + 1) : text;
+	}
+
 	private static Reader reader(InputStream in, Charset charset) {
 		// REPLACE, not REPORT: one bad byte in a mostly-readable export should cost
 		// the user one glyph, not the whole preview.
