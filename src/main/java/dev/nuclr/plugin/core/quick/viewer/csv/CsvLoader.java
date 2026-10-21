@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -191,7 +193,7 @@ final class CsvLoader {
 
 		for (int i = 0; i < widest; i++) {
 			String name = header != null && i < header.size() ? header.get(i) : null;
-			columns.add(name == null || name.isBlank() ? "Column " + (i + 1) : name.trim());
+			columns.add(name == null || name.isBlank() ? tr("column.default.name", String.valueOf(i + 1)) : name.trim());
 		}
 
 		return columns;

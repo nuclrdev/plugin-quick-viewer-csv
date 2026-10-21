@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -48,10 +50,10 @@ record CsvDialect(char delimiter, char quote) {
 	/** A readable name for the separator, for the viewer's dialect menu. */
 	String delimiterName() {
 		return switch (delimiter) {
-			case ',' -> "Comma";
-			case ';' -> "Semicolon";
-			case '\t' -> "Tab";
-			case '|' -> "Pipe";
+			case ',' -> tr("dialect.comma");
+			case ';' -> tr("dialect.semicolon");
+			case '\t' -> tr("dialect.tab");
+			case '|' -> tr("dialect.pipe");
 			default -> String.valueOf(delimiter);
 		};
 	}

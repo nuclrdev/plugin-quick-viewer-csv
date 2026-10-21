@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -43,8 +45,6 @@ final class PaginationBar extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	/** The label for {@link Paging#FIT} in the page-size list. */
-	private static final String FIT_LABEL = "Fit";
 
 	/** What the bar reports back to the viewer. */
 	interface Listener {
@@ -56,14 +56,17 @@ final class PaginationBar extends JPanel {
 		void pageSizeChoiceChanged(int choice);
 	}
 
-	private final JButton first = button("|◀", "First page");
-	private final JButton previous = button("◀", "Previous page (Alt+Left)");
-	private final JButton next = button("▶", "Next page (Alt+Right)");
-	private final JButton last = button("▶|", "Last page");
+	private final JButton first = button("|◀", tr("page.first"));
+	private final JButton previous = button("◀", tr("page.previous"));
+	private final JButton next = button("▶", tr("page.next"));
+	private final JButton last = button("▶|", tr("page.last"));
 	private final JTextField pageField = ViewerUi.compact(new JTextField(3));
 	private final JLabel pageCountLabel = ViewerUi.compact(new JLabel("/ 1"));
 	private final JComboBox<String> pageSize = ViewerUi.compact(new JComboBox<>());
 	private final JLabel status = ViewerUi.compact(new JLabel(" "));
+
+	/** The label for {@link Paging#FIT} in the page-size list, fixed for the bar's lifetime. */
+	private final String fitLabel = tr("page.fit");
 
 	private final Listener listener;
 
@@ -78,17 +81,17 @@ final class PaginationBar extends JPanel {
 		setBorder(BorderFactory.createEmptyBorder(2, 4, 3, 4));
 
 		pageField.setHorizontalAlignment(SwingConstants.RIGHT);
-		pageField.setToolTipText("Go to page");
+		pageField.setToolTipText(tr("page.go.to"));
 		pageField.addActionListener(e -> goToTypedPage());
 
-		pageSize.addItem(FIT_LABEL);
+		pageSize.addItem(fitLabel);
 		for (int choice : Paging.CHOICES) {
 			pageSize.addItem(String.valueOf(choice));
 		}
-		pageSize.setToolTipText("Rows per page");
+		pageSize.setToolTipText(tr("page.rows.per.page"));
 		pageSize.addActionListener(e -> {
 			if (!updating) {
-				listener.pageSizeChoiceChanged(choiceOf((String) pageSize.getSelectedItem()));
+				listener.pageSizeChoiceChanged(choiceOf((String) pageSize.getSelectedItem(), fitLabel));
 			}
 		});
 
@@ -137,14 +140,14 @@ final class PaginationBar extends JPanel {
 
 		updating = true;
 		try {
-			pageSize.setSelectedItem(choice == Paging.FIT ? FIT_LABEL : String.valueOf(choice));
+			pageSize.setSelectedItem(choice == Paging.FIT ? fitLabel : String.valueOf(choice));
 		} finally {
 			updating = false;
 		}
 	}
 
 	int pageSizeChoice() {
-		return choiceOf((String) pageSize.getSelectedItem());
+		return choiceOf((String) pageSize.getSelectedItem(), fitLabel);
 	}
 
 	void applyTheme(Palette palette) {
@@ -214,9 +217,9 @@ final class PaginationBar extends JPanel {
 		listener.pageRequested(Math.max(0, Math.min(page, pageCount - 1)));
 	}
 
-	private static int choiceOf(String label) {
+	private static int choiceOf(String label, String fitLabel) {
 
-		if (label == null || FIT_LABEL.equals(label)) {
+		if (label == null || fitLabel.equals(label)) {
 			return Paging.FIT;
 		}
 

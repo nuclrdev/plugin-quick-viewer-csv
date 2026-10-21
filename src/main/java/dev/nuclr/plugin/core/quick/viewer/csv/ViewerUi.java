@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -224,10 +226,10 @@ final class ViewerUi {
 	static String humanSize(long bytes) {
 
 		if (bytes < 1024) {
-			return bytes + " B";
+			return tr("size.bytes", String.valueOf(bytes));
 		}
 
-		String[] units = { "KB", "MB", "GB", "TB" };
+		String[] units = { "size.kb", "size.mb", "size.gb", "size.tb" };
 		double value = bytes;
 		int unit = -1;
 		while (value >= 1024 && unit < units.length - 1) {
@@ -235,7 +237,7 @@ final class ViewerUi {
 			unit++;
 		}
 
-		return String.format(Locale.ROOT, value < 10 ? "%.1f %s" : "%.0f %s", value, units[unit]);
+		return tr(units[unit], String.format(Locale.ROOT, value < 10 ? "%.1f" : "%.0f", value));
 	}
 
 	static String ellipsizeEnd(String text, int max) {

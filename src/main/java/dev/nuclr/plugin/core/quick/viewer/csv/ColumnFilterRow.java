@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -205,7 +207,7 @@ final class ColumnFilterRow extends JPanel {
 	private JTextField field(int dataColumn, String columnTitle) {
 
 		JTextField field = ViewerUi.compact(new JTextField());
-		field.setToolTipText("Filter " + columnTitle);
+		field.setToolTipText(tr("filter.column.tooltip", columnTitle));
 		field.putClientProperty("JTextField.showClearButton", Boolean.TRUE);
 
 		// Let Escape through to the panel, which uses it to close the find bar or

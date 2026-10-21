@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -70,11 +72,11 @@ final class FindBar extends JPanel {
 
 	private final JTextField query = ViewerUi.compact(new JTextField());
 	private final JLabel status = ViewerUi.compact(new JLabel(" "));
-	private final JToggleButton caseSensitive = toggle("Aa", "Match case");
-	private final JToggleButton regex = toggle(".*", "Regular expression");
-	private final JButton previous = button("▲", "Previous match (Shift+F3)");
-	private final JButton next = button("▼", "Next match (F3)");
-	private final JButton close = button("✕", "Close (Esc)");
+	private final JToggleButton caseSensitive = toggle("Aa", tr("filter.match.case"));
+	private final JToggleButton regex = toggle(".*", tr("filter.regex"));
+	private final JButton previous = button("▲", tr("find.previous"));
+	private final JButton next = button("▼", tr("find.next"));
+	private final JButton close = button("✕", tr("find.close"));
 
 	private final Listener listener;
 
@@ -88,7 +90,7 @@ final class FindBar extends JPanel {
 		setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
 		setVisible(false);
 
-		query.putClientProperty("JTextField.placeholderText", "Find…");
+		query.putClientProperty("JTextField.placeholderText", tr("find.placeholder"));
 		query.putClientProperty("JTextField.showClearButton", Boolean.TRUE);
 		query.getDocument().addDocumentListener(new DocumentListener() {
 

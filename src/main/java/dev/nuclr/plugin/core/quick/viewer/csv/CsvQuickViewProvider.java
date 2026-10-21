@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -65,6 +67,9 @@ public class CsvQuickViewProvider implements QuickViewNuclrPlugin {
 	public void preinit(NuclrPluginContext context) {
 
 		this.context = context;
+		if (context != null) {
+			Messages.use(context.getLocale());
+		}
 		this.theme = context != null ? context.getTheme() : null;
 
 		if (panel != null) {
@@ -189,6 +194,6 @@ public class CsvQuickViewProvider implements QuickViewNuclrPlugin {
 
 	@Override
 	public String getWindowTitle() {
-		return "Quick View: " + (currentResource != null ? currentResource.getName() : "");
+		return tr("window.title", currentResource != null ? currentResource.getName() : "");
 	}
 }

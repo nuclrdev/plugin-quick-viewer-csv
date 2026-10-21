@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -298,7 +300,7 @@ final class CsvQuickViewPanel extends JPanel {
 			return false;
 		} catch (Exception e) {
 			log.warn("Failed to read [{}]: {}", name, e.getMessage());
-			showMessage("Couldn’t read this file", name, e.getMessage(), cancelled);
+			showMessage(tr("message.cannot.read"), name, e.getMessage(), cancelled);
 			return true;
 		}
 
@@ -334,7 +336,7 @@ final class CsvQuickViewPanel extends JPanel {
 			model.setData(null);
 			columnFilterRow.rebuild();
 			paginationBar.setStatus(" ");
-			showMessageNow("Nothing to preview", null, null);
+			showMessageNow(tr("message.nothing"), null, null);
 		});
 	}
 
@@ -542,7 +544,7 @@ final class CsvQuickViewPanel extends JPanel {
 		deck.add(messageCard, CARD_MESSAGE);
 		add(deck, BorderLayout.CENTER);
 
-		messageCard.show("Loading…", null, null);
+		messageCard.show(tr("message.loading"), null, null);
 		cards.show(deck, CARD_MESSAGE);
 	}
 
@@ -694,9 +696,9 @@ final class CsvQuickViewPanel extends JPanel {
 		columnFilterRow.applyTheme(palette);
 
 		if (loaded.isEmpty()) {
-			showMessageNow("No rows to show",
+			showMessageNow(tr("message.no.rows"),
 					fileName,
-					loaded.hasHeaderRow() ? "The file has a header row and nothing under it." : null);
+					loaded.hasHeaderRow() ? tr("message.header.only") : null);
 			return;
 		}
 
@@ -827,7 +829,7 @@ final class CsvQuickViewPanel extends JPanel {
 			return;
 		}
 
-		paginationBar.setStatus("Filtering…");
+		paginationBar.setStatus(tr("status.filtering"));
 
 		Thread.ofVirtual().name("csv-quickview-view").start(() -> {
 
@@ -929,26 +931,26 @@ final class CsvQuickViewPanel extends JPanel {
 
 		StringBuilder status = new StringBuilder();
 		if (view.length == 0) {
-			status.append("No matching rows");
+			status.append(tr("status.no.matching"));
 		} else {
-			status.append("Rows ").append(ViewerUi.count(first + 1L)).append('–').append(ViewerUi.count(end))
-					.append(" of ").append(ViewerUi.count(view.length));
+			status.append(tr("status.rows", ViewerUi.count(first + 1L), ViewerUi.count(end),
+					ViewerUi.count(view.length)));
 		}
 
 		if (view.length != data.rowCount()) {
-			status.append(" (filtered from ").append(ViewerUi.count(data.rowCount())).append(')');
+			status.append(' ').append(tr("status.filtered.from", ViewerUi.count(data.rowCount())));
 		}
 
 		if (!selectedRows.isEmpty()) {
-			status.append("  ·  ").append(ViewerUi.count(selectedRows.size())).append(" selected");
+			status.append("  ·  ").append(tr("status.selected", ViewerUi.count(selectedRows.size())));
 		}
 
 		if (data.isTruncated()) {
-			status.append("  ·  first ").append(ViewerUi.count(data.rowCount())).append(" rows of a ")
-					.append(ViewerUi.humanSize(data.byteLength())).append(" file");
+			status.append("  ·  ").append(tr("status.truncated", ViewerUi.count(data.rowCount()),
+					ViewerUi.humanSize(data.byteLength())));
 		}
 
-		status.append("  ·  ").append(data.dialect().delimiterName()).append("-separated");
+		status.append("  ·  ").append(tr("status.separated", data.dialect().delimiterName()));
 
 		paginationBar.setStatus(status.toString());
 	}
@@ -1117,7 +1119,7 @@ final class CsvQuickViewPanel extends JPanel {
 			return;
 		}
 
-		findBar.setStatus("Searching…");
+		findBar.setStatus(tr("status.searching"));
 
 		Thread.ofVirtual().name("csv-quickview-search").start(() -> {
 
@@ -1242,33 +1244,33 @@ final class CsvQuickViewPanel extends JPanel {
 		int selected = selectedRows.size();
 		boolean filtered = data != null && view.length != data.rowCount();
 
-		JMenuItem copySelected = new JMenuItem("Copy " + ViewerUi.count(selected) + " selected rows");
+		JMenuItem copySelected = new JMenuItem(tr("menu.copy.selected", ViewerUi.count(selected)));
 		copySelected.setEnabled(selected > 0);
 		copySelected.addActionListener(e -> copyToClipboard(selectedRowsInViewOrder()));
 		menu.add(copySelected);
 
 		JMenuItem copyShown = new JMenuItem(
-				(filtered ? "Copy " + ViewerUi.count(view.length) + " filtered rows" : "Copy all rows"));
+				(filtered ? tr("menu.copy.filtered", ViewerUi.count(view.length)) : tr("menu.copy.all")));
 		copyShown.setEnabled(view.length > 0);
 		copyShown.addActionListener(e -> copyToClipboard(view));
 		menu.add(copyShown);
 
 		menu.addSeparator();
 
-		JMenuItem exportSelected = new JMenuItem("Export " + ViewerUi.count(selected) + " selected rows to CSV…");
+		JMenuItem exportSelected = new JMenuItem(tr("menu.export.selected", ViewerUi.count(selected)));
 		exportSelected.setEnabled(selected > 0);
 		exportSelected.addActionListener(e -> exportToFile(selectedRowsInViewOrder()));
 		menu.add(exportSelected);
 
 		JMenuItem exportShown = new JMenuItem(
-				(filtered ? "Export " + ViewerUi.count(view.length) + " filtered rows to CSV…" : "Export all rows to CSV…"));
+				(filtered ? tr("menu.export.filtered", ViewerUi.count(view.length)) : tr("menu.export.all")));
 		exportShown.setEnabled(view.length > 0);
 		exportShown.addActionListener(e -> exportToFile(view));
 		menu.add(exportShown);
 
 		menu.addSeparator();
 
-		JCheckBoxMenuItem includeHeader = new JCheckBoxMenuItem("Include header row", exportIncludesHeader);
+		JCheckBoxMenuItem includeHeader = new JCheckBoxMenuItem(tr("menu.include.header"), exportIncludesHeader);
 		includeHeader.addActionListener(e -> {
 			exportIncludesHeader = includeHeader.isSelected();
 			store(SETTING_EXPORT_HEADER, exportIncludesHeader);
@@ -1293,11 +1295,11 @@ final class CsvQuickViewPanel extends JPanel {
 		JPopupMenu menu = exportMenu();
 		menu.addSeparator();
 
-		JMenuItem selectAll = new JMenuItem("Select all rows in view");
+		JMenuItem selectAll = new JMenuItem(tr("menu.select.all"));
 		selectAll.addActionListener(e -> selectAllRows());
 		menu.add(selectAll);
 
-		JMenuItem clear = new JMenuItem("Clear selection");
+		JMenuItem clear = new JMenuItem(tr("menu.clear.selection"));
 		clear.setEnabled(!selectedRows.isEmpty());
 		clear.addActionListener(e -> clearSelection());
 		menu.add(clear);
@@ -1305,7 +1307,7 @@ final class CsvQuickViewPanel extends JPanel {
 		menu.addSeparator();
 		menu.add(dialectMenu());
 
-		JCheckBoxMenuItem headerRow = new JCheckBoxMenuItem("First row is a header", data.hasHeaderRow());
+		JCheckBoxMenuItem headerRow = new JCheckBoxMenuItem(tr("menu.first.row.header"), data.hasHeaderRow());
 		headerRow.addActionListener(e -> reload(data.dialect(), headerRow.isSelected()));
 		menu.add(headerRow);
 
@@ -1315,7 +1317,7 @@ final class CsvQuickViewPanel extends JPanel {
 	/** Lets the user overrule the sniffed separator, which is the one thing a mis-read file needs. */
 	private JMenu dialectMenu() {
 
-		JMenu menu = new JMenu("Separator");
+		JMenu menu = new JMenu(tr("menu.separator"));
 
 		for (char candidate : CsvDialect.CANDIDATES) {
 			CsvDialect option = CsvDialect.of(candidate);
@@ -1346,7 +1348,7 @@ final class CsvQuickViewPanel extends JPanel {
 				SwingUtilities.invokeLater(() -> install(item, fileName, reloaded));
 			} catch (Exception e) {
 				log.warn("Failed to re-read [{}]: {}", fileName, e.getMessage());
-				showMessage("Couldn’t read this file", fileName, e.getMessage(), cancelled);
+				showMessage(tr("message.cannot.read"), fileName, e.getMessage(), cancelled);
 			}
 		});
 	}
@@ -1359,16 +1361,15 @@ final class CsvQuickViewPanel extends JPanel {
 
 		if (rows.length > CsvExporter.CLIPBOARD_ROW_LIMIT) {
 			JOptionPane.showMessageDialog(this,
-					"That is " + ViewerUi.count(rows.length) + " rows — more than the clipboard should carry.\n"
-							+ "Export them to a CSV file instead.",
-					"Too many rows to copy", JOptionPane.INFORMATION_MESSAGE);
+					tr("clipboard.too.many.message", ViewerUi.count(rows.length)),
+					tr("clipboard.too.many.title"), JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
 
 		String text = CsvExporter.toText(data, rows, exportIncludesHeader, data.dialect().delimiter());
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
 
-		paginationBar.setStatus("Copied " + ViewerUi.count(rows.length) + " rows to the clipboard");
+		paginationBar.setStatus(tr("clipboard.copied", ViewerUi.count(rows.length)));
 	}
 
 	private void exportToFile(int[] rows) {
@@ -1378,7 +1379,7 @@ final class CsvQuickViewPanel extends JPanel {
 		}
 
 		JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle("Export " + ViewerUi.count(rows.length) + " rows");
+		chooser.setDialogTitle(tr("export.chooser.title", ViewerUi.count(rows.length)));
 		chooser.setSelectedFile(new File(defaultExportDirectory(),
 				CsvFileSupport.baseName(fileName) + "-export.csv"));
 
@@ -1390,8 +1391,8 @@ final class CsvQuickViewPanel extends JPanel {
 
 		if (Files.exists(file)) {
 			int answer = JOptionPane.showConfirmDialog(this,
-					file.getFileName() + " already exists. Replace it?",
-					"Replace file", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+					tr("export.replace.message", file.getFileName()),
+					tr("export.replace.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if (answer != JOptionPane.YES_OPTION) {
 				return;
 			}
@@ -1413,13 +1414,13 @@ final class CsvQuickViewPanel extends JPanel {
 					// No file manager to open: say something, or a successful export
 					// would look like nothing happened at all.
 					SwingUtilities.invokeLater(() -> paginationBar.setStatus(
-							"Exported " + ViewerUi.count(rows.length) + " rows to " + file));
+							tr("export.done", ViewerUi.count(rows.length), file)));
 				}
 			} catch (Exception e) {
 				log.warn("Failed to export to [{}]: {}", file, e.getMessage());
 				SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this,
-						"Could not write " + file + "\n" + e.getMessage(),
-						"Export failed", JOptionPane.ERROR_MESSAGE));
+						tr("export.failed.message", file, e.getMessage()),
+						tr("export.failed.title"), JOptionPane.ERROR_MESSAGE));
 			}
 		});
 	}

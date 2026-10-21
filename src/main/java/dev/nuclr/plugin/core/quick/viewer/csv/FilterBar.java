@@ -17,6 +17,8 @@
 */
 package dev.nuclr.plugin.core.quick.viewer.csv;
 
+import static dev.nuclr.plugin.core.quick.viewer.csv.Messages.tr;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -59,10 +61,10 @@ final class FilterBar extends JPanel {
 	}
 
 	private final JTextField query = ViewerUi.compact(new JTextField());
-	private final JToggleButton caseSensitive = toggle("Aa", "Match case");
-	private final JToggleButton regex = toggle(".*", "Regular expression");
-	private final JToggleButton columnFilters = toggle("Cols", "Filter each column separately");
-	private final JButton export = button("Export ▾", "Export or copy rows");
+	private final JToggleButton caseSensitive = toggle("Aa", tr("filter.match.case"));
+	private final JToggleButton regex = toggle(".*", tr("filter.regex"));
+	private final JToggleButton columnFilters = toggle(tr("filter.columns"), tr("filter.columns.tooltip"));
+	private final JButton export = button(tr("filter.export"), tr("filter.export.tooltip"));
 
 	private Palette palette = ViewerUi.palette(null);
 
@@ -71,8 +73,8 @@ final class FilterBar extends JPanel {
 		super(new GridBagLayout());
 		setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
 
-		query.setToolTipText("Show only rows where any column matches");
-		query.putClientProperty("JTextField.placeholderText", "Filter rows…");
+		query.setToolTipText(tr("filter.query.tooltip"));
+		query.putClientProperty("JTextField.placeholderText", tr("filter.query.placeholder"));
 		query.putClientProperty("JTextField.showClearButton", Boolean.TRUE);
 		query.getDocument().addDocumentListener(new DocumentListener() {
 
@@ -148,8 +150,8 @@ final class FilterBar extends JPanel {
 				? null
 				: BorderFactory.createLineBorder(ViewerUi.blend(palette.accent(), Color.RED, 0.5f)));
 		query.setToolTipText(message == null
-				? "Show only rows where any column matches"
-				: "Not a valid regular expression: " + message);
+				? tr("filter.query.tooltip")
+				: tr("filter.invalid.regex", message));
 	}
 
 	void applyTheme(Palette palette) {
